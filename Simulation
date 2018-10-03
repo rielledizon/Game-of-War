@@ -1,0 +1,330 @@
+import java.util.*;
+import java.io.*;
+
+public class Simulation 
+{
+	ArrayList<Integer> player1 = new ArrayList<Integer>();
+	ArrayList<Integer> player2 = new ArrayList<Integer>();
+	
+	ArrayList<Integer> battleCardPile = new ArrayList<Integer>();
+	
+	//store and clear to a list for every game
+	int gameCounter = 0;
+	int battleCounter = 0;
+	int warCounter = 0;
+	int warPlay = 0;
+	int doubleWarCounter = 0; 
+	
+	ArrayList<Integer> battleList = new ArrayList<Integer>();
+	ArrayList<Integer> warList = new ArrayList<Integer>();
+	ArrayList<Integer> doubleWarList = new ArrayList<Integer>();
+	
+	int player1Win = 0;
+	int player2Win = 0;
+	
+	
+	public void run()
+	{
+		while(this.gameCounter < 1000) 
+		{
+			//need winner counter
+			dealCards(); //randomly deal cards in order
+			shuffleCards(); //shuffle so cards are not in order
+			
+			while (noHandsEmpty())
+			{
+				battle();
+				
+			}
+
+			this.gameCounter++;
+		}
+		
+	}
+
+	private void dealCards() //deals cards to two players; might not need suites
+	{
+		//go through cards 1-13
+		//go through each suite
+		//randomize to each player
+		//check if player was already dealt that card
+		
+		int x = 0;
+		int y = 0;
+		
+		for (int i = 1; i <= 13; i++)
+		{	
+			for (int j = 1; j <= 4; j++)
+			{
+				Random r = new Random(); //randomize 0 vs 1
+				int player = r.nextInt(2);
+				
+				boolean cardPlacement = true;
+				
+				while(cardPlacement)
+				{
+					if(player == 0)
+					{
+						if(x < 26)
+						{
+							this.player1.add(i);
+							x++;
+							cardPlacement = false;
+						}
+						else
+						{
+							player = 1;
+						}
+					}
+					if(player == 1)
+					{
+						if(y < 26)
+						{
+							this.player2.add(i);
+							y++;
+							cardPlacement = false;
+						}
+						else
+						{
+							player = 0;
+						}
+					}
+				}
+			}
+		}
+	}
+
+	private void shuffleCards() //shuffles decks
+	{
+		Collections.shuffle(this.player1);
+		Collections.shuffle(this.player2);
+	}
+	private boolean noHandsEmpty() //checks if a player wins by having all cards
+	{
+		if(this.player1.size() == 0 || this.player2.size() == 0)
+		{
+			if(this.player1.size() == 0)
+			{
+				this.player1Win++;
+			}
+			else
+			{
+				this.player2Win++;
+			}
+			
+			this.player1.clear();
+			this.player2.clear();
+			
+			statisticsLists();
+			
+			this.battleCounter = 0;
+			this.warCounter = 0;
+			this.doubleWarCounter = 0;
+			
+			return false;
+		}
+		else
+		{
+			return true;
+		}
+	}
+
+	private void battle() //compares cards and gives both to higher card holder
+	{
+		//ace is highest
+		//check if player1.get(0) equals player2.get(0)
+		//if same, go to war
+		
+		this.battleCounter++;
+		
+		if (this.player1.get(0) == this.player2.get(0)) //has to check for war at 1 card
+		{
+			if(this.player1.size() > 1 && this.player2.size() > 1)
+			{
+				this.battleCardPile.add(this.player1.get(0));
+				this.battleCardPile.add(this.player2.get(0));
+				
+				this.player1.remove(0);
+				this.player2.remove(0);
+			}
+			else if(this.player1.size() == 1)
+			{
+				this.battleCardPile.add(this.player2.get(0));
+				
+				this.player2.remove(0);
+			}
+			else if(this.player2.size() == 1)
+			{
+				this.battleCardPile.add(this.player1.get(0));
+				
+				this.player1.remove(0);
+			}
+			
+			this.warCounter++;
+			
+			if(this.warPlay > 0)
+			{
+				this.doubleWarCounter++;
+			}
+			war();
+			
+		}
+		else
+		{
+			this.warPlay = 0;
+			
+			if (this.player1.get(0) > this.player2.get(0))
+			{
+				this.battleCardPile.add(this.player1.get(0));
+				this.battleCardPile.add(this.player2.get(0));
+				
+				this.player1.remove(0);
+				this.player2.remove(0);
+				
+				Collections.shuffle(this.battleCardPile); //randomizes the cards being added to bottom of deck
+				this.player1.addAll(this.battleCardPile);
+				this.battleCardPile.clear();
+				
+			}
+			else if (this.player1.get(0) < this.player2.get(0))
+			{
+				this.battleCardPile.add(this.player1.get(0));
+				this.battleCardPile.add(this.player2.get(0));
+				
+				this.player1.remove(0);
+				this.player2.remove(0);
+				
+				Collections.shuffle(this.battleCardPile);
+				this.player2.addAll(this.battleCardPile);
+				this.battleCardPile.clear();
+				
+			}
+		}
+	}
+
+	private void war() //takes battle card pile and adds on three then flips a card open to compare
+	{
+		//check if player1 and player2 is greater than 3 to play war
+		//if less than 3, put the last card up 
+		
+		this.warPlay++;
+		
+		if(this.player1.size() > 3 && this.player2.size() > 3) //normal play
+		{
+			this.battleCardPile.add(this.player1.get(0));
+			this.battleCardPile.add(this.player1.get(1));
+			this.battleCardPile.add(this.player1.get(2));
+			
+			this.battleCardPile.add(this.player2.get(0));
+			this.battleCardPile.add(this.player2.get(1));
+			this.battleCardPile.add(this.player2.get(2));
+			
+			this.player1.remove(2);//done in reverse bc taking 0 out first will make 1 0
+			this.player1.remove(1);
+			this.player1.remove(0);
+			
+			this.player2.remove(2);
+			this.player2.remove(1);
+			this.player2.remove(0);
+			
+			Collections.shuffle(this.battleCardPile);
+			
+			battle();
+		}
+		else if(this.player1.size() <= 3 || this.player2.size() <= 3) //in case deck too small for war
+		{
+			//check if one is greater than the other
+			
+			if(this.player1.size() > this.player2.size())
+			{
+				this.battleCardPile.add(this.player1.get(0));
+				this.battleCardPile.add(this.player1.get(1));
+				this.battleCardPile.add(this.player1.get(2));
+				
+				this.player1.remove(2);//done in reverse bc taking 0 out first will make 1 0
+				this.player1.remove(1);
+				this.player1.remove(0);
+				
+				if(this.player2.size() > 1 && this.player2.size() != 1)
+				{
+					for(int i = 0; i < (this.player2.size()-1); i++)
+					{
+						this.battleCardPile.add(this.player2.get(0));
+						this.player2.remove(0);
+					}
+				}
+				Collections.shuffle(this.battleCardPile);
+				battle();
+			}
+			else if(this.player1.size() < this.player2.size())
+			{
+				this.battleCardPile.add(this.player2.get(0));
+				this.battleCardPile.add(this.player2.get(1));
+				this.battleCardPile.add(this.player2.get(2));
+				
+				this.player2.remove(2);//done in reverse bc taking 0 out first will make 1 0
+				this.player2.remove(1);
+				this.player2.remove(0);
+				
+				if(this.player1.size() > 1)
+				{
+					for(int i = 0; i < (this.player1.size()-1); i++)
+					{
+						this.battleCardPile.add(this.player1.get(0));
+						this.player1.remove(0);
+					}
+				}
+
+				Collections.shuffle(this.battleCardPile);
+				battle();
+			}
+		}
+	}
+	public void statisticsLists() //insert parameters later
+	{
+		//average: number of battles, wars, double wars
+		//max min of battles and wars
+		//set up an arraylist to easily add up and divide and find max min
+		
+		
+		this.battleList.add(this.battleCounter);
+		this.warList.add(this.warCounter);
+		this.doubleWarList.add(this.doubleWarCounter);
+		
+		
+	}
+	public String statistics() throws IOException 
+	{
+		double sumBattle = 0;
+		double sumWar = 0;
+		double sumDoubleWar = 0;
+		
+		for(int i : this.battleList)
+		{
+			sumBattle += i;
+		}
+		double averageBattle = sumBattle/1000;
+		
+		for(int i : this.warList)
+		{
+			sumWar += i;
+		}
+		double averageWar = sumWar/1000;
+		
+		for(int i : this.doubleWarList)
+		{
+			sumDoubleWar += i;
+		}
+		double averageDoubleWar = sumDoubleWar/1000;
+		
+        	String stats = "Average number of battles per game: " + averageBattle + "\n"; 
+		stats += "Average number of wars per game: " + averageWar + "\n";
+		stats += "Average number of double wars per game: " + averageDoubleWar + "\n";
+		stats += "Max number of battles per game: " + Collections.max(this.battleList) + "\n";
+		stats += "Min number of battles per game: " + Collections.min(this.battleList) + "\n";
+		stats += "Max number of wars per game: " + Collections.max(this.warList) + "\n";
+		stats += "Min number of wars per game: " + Collections.min(this.warList) + "\n";
+		return stats;
+		
+	}
+}

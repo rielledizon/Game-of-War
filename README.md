@@ -1,2 +1,2 @@
-# Game-of-War
-Repository kept for collaboration and submission to CPSC 231 Spring 2017
+# war2017_turquoise
+rielledizon + bayleemumma
